@@ -193,4 +193,68 @@ HashingTestSuite.test("Hashing/TopLevelHashing/UnsafeRawBufferPointer") {
   }
 }
 
+HashingTestSuite.test("Hashing/TopLevelHashing/RawSpan")
+  .skip(.custom(
+    { if #available(SwiftStdlib 6.2, *) { false } else { true } },
+    reason: "Requires Swift 6.2's standard library"
+  ))
+  .code {
+  guard #available(SwiftStdlib 6.2, *) else { return }
+
+  func checkTopLevelHash(
+    for buffer: [UInt8],
+    seed: Int,
+    file: String = #file,
+    line: UInt = #line) {
+    var URBPHasher = Hasher(_seed: seed)
+    buffer.withUnsafeBytes { buffer in
+      URBPHasher.combine(bytes: buffer)
+    }
+    let expected = URBPHasher.finalize()
+
+    var rawSpanHasher = Hasher(_seed: seed)
+    rawSpanHasher.combine(bytes: buffer.span.bytes)
+    let actual = rawSpanHasher.finalize()
+
+    expectEqual(
+      actual,
+      expected,
+      "seed: \(seed), buffer: \(buffer)",
+      file: file,
+      line: line)
+  }
+
+  for seed: Int in [
+    0,
+    1,
+    2,
+    Int(truncatingIfNeeded: 0x1827364554637281 as UInt64),
+    Int(truncatingIfNeeded: 0xf9e8d7c6b5a49382 as UInt64)
+  ] {
+    var zeros: [UInt8] = []
+    var integers: [UInt8] = []
+    for i: UInt8 in 0 ..< 20 {
+      zeros.append(0)
+      checkTopLevelHash(for: zeros, seed: seed)
+      integers.append(i)
+      checkTopLevelHash(for: integers, seed: seed)
+    }
+
+    var nilSpanHasher = Hasher(_seed: seed)
+    nilSpanHasher.combine(bytes: RawSpan())
+    let nilSpanHash = nilSpanHasher.finalize()
+
+    var emptyURBPHasher = Hasher(_seed: seed)
+    ([] as [UInt8]).withUnsafeBytes { buffer in
+      emptyURBPHasher.combine(bytes: buffer)
+    }
+    let emptyURBPHash = emptyURBPHasher.finalize()
+
+    expectEqual(
+      nilSpanHash,
+      emptyURBPHash,
+      "seed: \(seed), empty span vs empty array")
+  }
+}
+
 runAllTests()

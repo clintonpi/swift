@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -478,5 +478,20 @@ public struct Hasher {
     var core = _Core(seed: seed)
     unsafe core.combine(bytes: bytes)
     return Int(truncatingIfNeeded: core.finalize())
+  }
+}
+
+@available(SwiftStdlib 6.2, *)
+extension Hasher {
+  /// Adds the contents of the given `RawSpan` to this hasher, mixing it into the
+  /// hasher state.
+  ///
+  /// - Parameter bytes: A `RawSpan` view of a contiguous region of memory.
+  @_effects(releasenone)
+  @export(implementation)
+  public mutating func combine(bytes: borrowing RawSpan) {
+    bytes.withUnsafeBytes { buffer in
+      unsafe self.combine(bytes: buffer)
+    }
   }
 }
