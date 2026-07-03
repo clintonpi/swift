@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -1295,6 +1295,21 @@ extension Array: RangeReplaceableCollection {
         }
         _buffer.mutableCount = newCount
       }
+    }
+  }
+  
+  /// Adds the elements of a span to the end of the array.
+  ///
+  /// - Parameter newElements: A span whose elements to append to the array.
+  ///
+  /// - Complexity: O(*m*) on average, where *m* is the number of
+  ///   elements in `newElements`, over many calls to `append(copying:)` on the same
+  ///   array.
+  @available(SwiftStdlib 6.2, *)
+  @export(implementation)
+  public mutating func append(copying newElements: borrowing Span<Element>) {
+    newElements.withUnsafeBufferPointer { buffer in
+      unsafe self.append(contentsOf: buffer)
     }
   }
 

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -16,7 +16,7 @@
 
 import StdlibUnittest
 
-var suite = TestSuite("Array-Backed Span Properties")
+var suite = TestSuite("Array-Backed Span Properties and Methods")
 defer { runAllTests() }
 
 suite.test("Array.span property")
@@ -136,4 +136,14 @@ suite.test("ArraySlice.mutableSpan property")
 
   _ = consume span
   expectEqual(s[0], a[0]+100)
+}
+
+suite.test("Array.append(copying: Span<Element>) method")
+.require(.stdlib_6_2).code {
+  guard #available(SwiftStdlib 6.2, *) else { return }
+
+  var a = [1, 2, 3, 4, 5]
+  let b = [6, 7, 8]
+  a.append(copying: b.span)
+  expectEqual(a, [1, 2, 3, 4, 5, 6, 7, 8])
 }
