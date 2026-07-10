@@ -11,10 +11,14 @@
 // (except withContiguousStorageIfAvailable) were duplicated in a
 // new extension (extension AsyncSequence where Self: Sequence).
 @available(SwiftStdlib 5.1, *)
-struct DualSequence: Sequence, AsyncSequence, IteratorProtocol, AsyncIteratorProtocol {
+struct DualSequence: Sequence, AsyncSequence, IteratorProtocol {
   func next() -> Int? { nil }
 
-  func makeAsyncIterator() -> Self { self }
+  struct AsyncIter: AsyncIteratorProtocol {
+    mutating func next() async throws -> Int? { nil }
+  }
+
+  func makeAsyncIterator() -> AsyncIter { AsyncIter() }
 }
 
 @available(SwiftStdlib 5.1, *)
