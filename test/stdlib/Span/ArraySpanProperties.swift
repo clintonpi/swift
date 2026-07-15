@@ -147,3 +147,13 @@ suite.test("Array.append(copying: Span<Element>) method")
   a.append(copying: b.span)
   expectEqual(a, [1, 2, 3, 4, 5, 6, 7, 8])
 }
+
+suite.test("ContiguousArray.append(copying: Span<Element>) method")
+.require(.stdlib_6_2).code {
+  guard #available(SwiftStdlib 6.2, *) else { return }
+
+  var a: ContiguousArray = [1, 2, 3, 4, 5]
+  let b: ContiguousArray = [6, 7, 8]
+  a.append(copying: b.span)
+  expectEqual(a, [1, 2, 3, 4, 5, 6, 7, 8])
+}
