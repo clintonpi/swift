@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -285,6 +285,34 @@ extension _StringGuts {
     }
 
     _foreignAppendInPlace(slicedOther)
+  }
+
+  @available(SwiftStdlib 6.2, *)
+  internal mutating func append(_ other: UTF8Span) {
+    defer { self._invariantCheck() }
+
+    let otherCount = other.count
+    guard otherCount > 0 else { return }
+
+    let totalCount = utf8Count + otherCount
+
+    // See `append(_ slicedOther: _StringGutsSlice)` for the reasoning behind `shouldBeSmol`.
+    let hasEnoughUsableSpace = isUniqueNative &&
+      nativeUnusedCapacity! >= otherCount
+    let shouldBeSmol = totalCount <= _SmallString.capacity &&
+      (isSmall || !hasEnoughUsableSpace)
+
+    unsafe other._withUnsafeBufferPointer { buffer in
+      if shouldBeSmol {
+        let smolSelf = _convertedToSmall()
+        let smolOther = unsafe _SmallString(buffer)!
+        self = _StringGuts(_SmallString(smolSelf, appending: smolOther)!)
+        return
+      }
+
+      prepareForAppendInPlace(totalCount: totalCount, otherUTF8Count: otherCount)
+      unsafe self.appendInPlace(buffer, isASCII: other.isKnownASCII)
+    }
   }
 
   internal mutating func appendInPlace(

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2017 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -175,6 +175,19 @@ extension String: RangeReplaceableCollection {
     for c in newElements {
       self.append(c._str)
     }
+  }
+  
+  /// Appends the code units of the given UTF8Span to this string.
+  ///
+  /// - Parameter newElements: A UTF8Span whose code units to append
+  ///   to this string.
+  ///
+  /// - Complexity: O(*m*) on average, where *m* is the number of
+  ///   elements in `newElements`, over many calls to `append(copying:)` on the same
+  ///   string.
+  @available(SwiftStdlib 6.2, *)
+  public mutating func append(copying newElements: borrowing UTF8Span) {
+    self._guts.append(newElements)
   }
 
   /// Replaces the text within the specified bounds with the given characters.

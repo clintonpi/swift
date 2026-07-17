@@ -124,3 +124,44 @@ strings.forEach { expected in
     }
   }
 }
+
+strings.forEach { expected in
+  suite.test("String.append(copying: UTF8Span) to Bridged String (empty suffix): \(expected)")
+  .require(.stdlib_6_2).code {
+    guard #available(SwiftStdlib 6.2, *) else { return }
+
+    guard let nss = expectNotNil(NSString(utf8String: expected)) else { return }
+
+    var bridged = String(nss)
+    bridged.append(copying: "".utf8Span)
+    expectEqual(bridged, expected)
+  }
+}
+
+strings.forEach { expected in
+  suite.test("String.append(copying: UTF8Span) to Bridged String (smol suffix): \(expected)")
+  .require(.stdlib_6_2).code {
+    guard #available(SwiftStdlib 6.2, *) else { return }
+
+    guard let nss = expectNotNil(NSString(utf8String: expected)) else { return }
+
+    let suffix = "-é"
+    var bridged = String(nss)
+    bridged.append(copying: suffix.utf8Span)
+    expectEqual(bridged, expected + suffix)
+  }
+}
+
+strings.forEach { expected in
+  suite.test("String.append(copying: UTF8Span) to Bridged String (long suffix): \(expected)")
+  .require(.stdlib_6_2).code {
+    guard #available(SwiftStdlib 6.2, *) else { return }
+
+    guard let nss = expectNotNil(NSString(utf8String: expected)) else { return }
+
+    let suffix = "A long string that is altogether not smol."
+    var bridged = String(nss)
+    bridged.append(copying: suffix.utf8Span)
+    expectEqual(bridged, expected + suffix)
+  }
+}

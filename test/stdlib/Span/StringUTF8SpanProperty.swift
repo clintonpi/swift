@@ -131,3 +131,52 @@ suite.test("Span from Substring.utf8Span")
     expectEqual(span1[i], span2[j])
   }
 }
+
+suite.test("String.append(copying: UTF8Span) where UTF8Span.isEmpty is true")
+.require(.stdlib_6_2).code {
+  guard #available(SwiftStdlib 6.2, *) else { return }
+
+  var s = "café"
+  let t = ""
+  expectTrue(t.utf8Span.isEmpty)
+  s.append(copying: t.utf8Span)
+  expectEqual(s, "café")
+}
+
+suite.test("String.append(copying: UTF8Span) where the result fits in a smol string")
+.require(.stdlib_6_2).code {
+  guard #available(SwiftStdlib 6.2, *) else { return }
+
+  var s = "café"
+  let t = "-"
+  s.append(copying: t.utf8Span)
+  expectEqual(s, "café-")
+
+  s.reserveCapacity(16)
+  s.append(copying: t.utf8Span)
+  expectEqual(s, "café--")
+}
+
+suite.test("String.append(copying: UTF8Span) where the allocated buffer had to grow")
+.require(.stdlib_6_2).code {
+  guard #available(SwiftStdlib 6.2, *) else { return }
+
+  var s = "A"
+  let t = " long string that is altogether not smol."
+
+  s.reserveCapacity(16)
+  s.append(copying: t.utf8Span)
+  expectEqual(s, "A long string that is altogether not smol.")
+}
+
+suite.test("String.append(copying: UTF8Span) into a shared (non-unique) native string")
+.require(.stdlib_6_2).code {
+  guard #available(SwiftStdlib 6.2, *) else { return }
+
+  let base = "A native string well over fifteen bytes"
+  var s = base
+  let t = s
+  s.append(copying: "!".utf8Span)
+  expectEqual(s, base + "!")
+  expectEqual(t, base)
+}
